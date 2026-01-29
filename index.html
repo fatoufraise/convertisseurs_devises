@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertisseur de Devises</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #efe2ae 0%, #e5d3f8 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .converter-box {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .currency-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        
+        .amount-input {
+            flex: 2;
+        }
+        
+        .currency-select {
+            flex: 1;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea93 0%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .result h2 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .result p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .exchange-icon {
+            text-align: center;
+            font-size: 24px;
+            margin: 15px 0;
+            color: #667eea;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            display: none;
+            margin-top: 10px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1> Convertisseur de Devises</h1>
+
+        <div class="converter-box">
+            <label>De</label>
+            <div class="currency-row">
+                <div class="amount-input">
+                    <input type="number" id="montant" placeholder="Montant" value="100" min="0" step="0.01">
+                </div>
+                <div class="currency-select">
+                    <select id="deDevise">
+                        <option value="EUR">EUR</option>
+                        <option value="USD">USD</option>
+                        <option value="GBP">GBP</option>
+                        <option value="JPY">JPY</option>
+                        <option value="CAD">CAD</option>
+                        <option value="AUD">AUD</option>
+                        <option value="CHF">CHF</option>
+                        <option value="CNY">CNY</option>
+                        <option value="INR">INR</option>
+                        <option value="BRL">BRL</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="exchange-icon">⇅</div>
+
+        <div class="converter-box">
+            <label>Vers</label>
+            <div class="currency-row">
+                <div class="currency-select">
+                    <select id="versDevise">
+                        <option value="EUR">EUR</option>
+                        <option value="USD" selected>USD</option>
+                        <option value="GBP">GBP</option>
+                        <option value="JPY">JPY</option>
+                        <option value="CAD">CAD</option>
+                        <option value="AUD">AUD</option>
+                        <option value="CHF">CHF</option>
+                        <option value="CNY">CNY</option>
+                        <option value="INR">INR</option>
+                        <option value="BRL">BRL</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="convertir()">Convertir</button>
+
+        <div class="loading" id="loading">⏳ Conversion en cours...</div>
+        <div class="error" id="error"></div>
+
+        <div class="result" id="resultat">
+            <h2 id="montantConverti"></h2>
+            <p id="tauxInfo"></p>
+        </div>
+    </div>
+
+    <script>
+        // API gratuite pour les taux de change
+        const API_URL = 'https://api.exchangerate-api.com/v4/latest/';
+
+        async function convertir() {
+            const montant = document.getElementById('montant').value;
+            const deDevise = document.getElementById('deDevise').value;
+            const versDevise = document.getElementById('versDevise').value;
+
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const resultat = document.getElementById('resultat');
+
+            // Validation
+            if (!montant || montant <= 0) {
+                error.textContent = '⚠️ Veuillez entrer un montant valide';
+                error.classList.add('show');
+                resultat.classList.remove('show');
+                return;
+            }
+
+            if (deDevise === versDevise) {
+                error.textContent = '⚠️ Veuillez choisir des devises différentes';
+                error.classList.add('show');
+                resultat.classList.remove('show');
+                return;
+            }
+
+            // Masquer les messages précédents
+            error.classList.remove('show');
+            resultat.classList.remove('show');
+            loading.classList.add('show');
+
+            try {
+                // accès à l'API
+                const response = await fetch(`${API_URL}${deDevise}`);
+
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la récupération des taux');
+                }
+
+                const data = await response.json();
+                const taux = data.rates[versDevise];
+
+                // calcul de la conversion
+                const resultatConversion = (montant * taux).toFixed(2);
+
+                // affichage du résultat
+                document.getElementById('montantConverti').textContent =
+                    `${resultatConversion} ${versDevise}`;
+                document.getElementById('tauxInfo').textContent =
+                    `1 ${deDevise} = ${taux.toFixed(4)} ${versDevise}`;
+
+                loading.classList.remove('show');
+                resultat.classList.add('show');
+
+            } catch (err) {
+                loading.classList.remove('show');
+                error.textContent = 'Erreur lors de la conversion. Veuillez réessayer.';
+                error.classList.add('show');
+                console.error('Erreur:', err);
+            }
+        }
+
+        // la conversion avec la touche Entrée
+        document.getElementById('montant').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                convertir();
+            }
+        });
+
+        // conversion automatique lors du changement de devise
+        document.getElementById('deDevise').addEventListener('change', function() {
+            if (document.getElementById('montant').value) {
+                convertir();
+            }
+        });
+
+        document.getElementById('versDevise').addEventListener('change', function() {
+            if (document.getElementById('montant').value) {
+                convertir();
+            }
+        });
+    </script>
+</body>
+
+</html>
